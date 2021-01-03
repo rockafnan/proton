@@ -145,7 +145,8 @@ class PanelTextProcessor: TextProcessing {
         guard let line = editor.currentLayoutLine else {
             return false
         }
-        guard line.text.string == trigger else {
+        // every attachment inserts a newline at the end. When attachment is deleted, the new following new line is not (TBD). The following check takes care of that case.
+        guard line.text.string.replacingOccurrences(of: "\n", with: "") == trigger else {
             return false
         }
         let attachment = PanelAttachment(frame: .zero)

@@ -268,7 +268,14 @@ open class Attachment: NSTextAttachment, BoundsObserving {
         let range = containerTextView.attributedText.rangeFor(attachment: self) else {
             return
         }
+        // Remove the view at the same time when deleting the attachment text. This seems to be a better approach
+        // and will be merged to master after some more testing.
+        removeFromSuperview()
         containerTextView.textStorage.replaceCharacters(in: range, with: "")
+        // This is required to set focus in the container editor after the attachment is deleted.
+        // If the focus was originally in the attachment, when deleting, it does not correctly show up in the parent
+        // and can cause a crash on backspace.
+        containerTextView.selectedRange = NSRange(location: range.location, length: 0)
     }
 
     /// Range of this attachment in it's container

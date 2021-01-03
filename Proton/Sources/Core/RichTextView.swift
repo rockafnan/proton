@@ -353,6 +353,10 @@ class RichTextView: AutogrowingTextView {
         guard contentLength > 0 else { return }
         let proposedRange = NSRange(location: max(0, selectedRange.location - 1), length: 0)
 
+        // Defensive check - validating new range
+        guard attributedText.length > proposedRange.location else {
+            return
+        }
         let attributeExists = (attributedText.attribute(.textBlock, at: proposedRange.location, effectiveRange: nil) as? Bool) == true
 
         guard attributeExists, let textRange = adjustedTextBlockRangeOnSelectionChange(oldRange: selectedRange, newRange: proposedRange) else {
