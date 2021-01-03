@@ -97,6 +97,7 @@ class CommandsExampleViewController: ExamplesBaseViewController {
         EditorViewContext.shared.delegate = self
 
         editor.registerProcessor(ListTextProcessor())
+        editor.registerProcessor(PanelTextProcessor())
 //        editor.paragraphStyle.paragraphSpacingBefore = 20
 
         self.buttons = makeCommandButtons()

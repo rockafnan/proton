@@ -130,3 +130,32 @@ extension PanelView {
         iconView.layer.borderColor = UIColor.systemGray.cgColor
     }
 }
+
+
+class PanelTextProcessor: TextProcessing {
+    private let trigger = ">> "
+    var name: String {
+        return "PanelTextProcessor"
+    }
+    var priority: TextProcessingPriority {
+        return .medium
+    }
+
+    func process(editor: EditorView, range editedRange: NSRange, changeInLength delta: Int) -> Processed {
+        guard let line = editor.currentLayoutLine else {
+            return false
+        }
+        guard line.text.string == trigger else {
+            return false
+        }
+        let attachment = PanelAttachment(frame: .zero)
+        attachment.selectBeforeDelete = true
+        editor.insertAttachment(in: line.range, attachment: attachment)
+
+        return true
+    }
+
+    func processInterrupted(editor: EditorView, at range: NSRange) {
+
+    }
+}
