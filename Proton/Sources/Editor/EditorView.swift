@@ -118,6 +118,11 @@ open class EditorView: UIView {
     public override var bounds: CGRect {
         didSet {
             guard oldValue != bounds else { return }
+            containerAttachment?.relayout()
+            let attachments = richTextView.textStorage.attachmentRanges
+            for attch in attachments {
+                attch.attachment.relayout()
+            }
             delegate?.editor(self, didChangeSize: bounds.size, previousSize: oldValue.size)
         }
     }

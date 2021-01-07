@@ -297,25 +297,22 @@ open class Attachment: NSTextAttachment, BoundsObserving {
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// Returns the calculated bounds for the attachment based on size rule and content view provided during initialization.
-    /// - Parameters:
-    ///   - textContainer: Text container for attachment
-    ///   - lineFrag: Line fragment containing the attachment
-    ///   - position: Position in the text container.
-    ///   - charIndex: Character index
-    public override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
-         guard let textContainer = textContainer, textContainer.size.height > 0 && textContainer.size.width > 0 else { return .zero }
-
+    static var counter = 0
+    func relayout() {
+        let tc = self.containerTextView?.textContainer
+        guard let textContainer = tc, textContainer.size.height > 0 && textContainer.size.width > 0 else {
+            return
+        }
+        let charIndex = 0
         var size: CGSize
 
-        if let boundsProviding = contentView as? DynamicBoundsProviding {
-            size = boundsProviding.sizeFor(containerSize: textContainer.size, lineRect: lineFrag)
-        } else {
-            size = contentView?.bounds.integral.size ?? view.bounds.integral.size
-        }
+        Attachment.counter += 1
+        print("❗️❗️Calculate bounds for Editor - \(Attachment.counter)❗️❗️")
+
+        size = contentView?.bounds.integral.size ?? view.bounds.integral.size
 
         if size == .zero,
-            let fittingSize = contentView?.systemLayoutSizeFitting(textContainer.size) {
+           let fittingSize = contentView?.systemLayoutSizeFitting(textContainer.size) {
             size = fittingSize
         }
 
@@ -348,17 +345,21 @@ open class Attachment: NSTextAttachment, BoundsObserving {
             size = CGSize(width: percentWidth, height: size.height)
         }
 
-        let offset = offsetProvider?.offset(for: self, in: textContainer, proposedLineFragment: lineFrag, glyphPosition: position, characterIndex: charIndex) ?? .zero
+        //TODO: Figure out an optimum approach to get the position and line height
+//        let offset = offsetProvider?.offset(for: self, in: textContainer, proposedLineFragment: lineFrag, glyphPosition: position, characterIndex: charIndex) ?? .zero
+
+        let offset = CGPoint.zero
 
         self.bounds = CGRect(origin: offset, size: size)
-        return self.bounds
+        self.frame = self.bounds
     }
 
     func render(in editorView: EditorView) {
         self.containerEditorView = editorView
         guard view.superview == nil else { return }
         editorView.richTextView.addSubview(self.view)
-        self.view.layoutIfNeeded()
+        // causes autolayout error because view.width == 0
+//        self.view.layoutIfNeeded()
 
         if var editorContentView = contentView as? EditorContentView,
             editorContentView.delegate == nil {
@@ -374,6 +375,6 @@ extension Attachment {
             let range = editor.attributedText.rangeFor(attachment: self) else { return }
 
         editor.invalidateLayout(for: range)
-        editor.relayoutAttachments(in: range)
+        relayout()
     }
 }
