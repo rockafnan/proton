@@ -75,14 +75,15 @@ class RichTextView: AutogrowingTextView {
 
     private func adjustedTextBlockRangeOnSelectionChange(oldRange: NSRange?, newRange: NSRange?) -> NSRange? {
         guard let old = oldRange,
-            let new = newRange,
-            old != new else { return nil }
+              let new = newRange,
+              old != new
+        else { return nil }
 
         let isReverseTraversal = (new.location < old.location) || (new.endLocation < old.endLocation)
 
         guard new.length > 0 else {
             if let textBlockRange = attributedText.rangeOf(attribute: .textBlock, at: new.location),
-                textBlockRange.location != new.location {
+               textBlockRange.location != new.location {
                 let location = isReverseTraversal ? textBlockRange.location : textBlockRange.endLocation
                 return NSRange(location: location, length: 0)
             }
@@ -93,9 +94,8 @@ class RichTextView: AutogrowingTextView {
         let location = isLocationChanged ? new.location : max(0, new.endLocation - 1)
 
         guard let textBlockRange = attributedText.rangeOf(attribute: .textBlock, at: location),
-            textBlockRange.contains(location) else {
-                return nil
-        }
+              textBlockRange.contains(location)
+        else { return nil }
 
         if isReverseTraversal {
             return adjustedTextBlockRangeReverse(new: new, old: old, textBlockRange: textBlockRange)
@@ -106,7 +106,7 @@ class RichTextView: AutogrowingTextView {
 
     private func adjustedTextBlockRangeReverse(new: NSRange, old: NSRange, textBlockRange: NSRange) -> NSRange {
         let range: NSRange
-        if textBlockRange.union(new) == textBlockRange && new.endLocation == old.endLocation && textBlockRange.contains(new.location) == false {
+        if textBlockRange.union(new) == textBlockRange, new.endLocation == old.endLocation, textBlockRange.contains(new.location) == false {
             range = NSRange(location: textBlockRange.location, length: old.endLocation - textBlockRange.endLocation)
         } else if new.endLocation < textBlockRange.endLocation && new.endLocation > textBlockRange.location {
             range = NSRange(location: new.location, length: textBlockRange.location - new.location)
@@ -120,8 +120,8 @@ class RichTextView: AutogrowingTextView {
         let range: NSRange
         let isLocationChanged = new.location != old.location
         if (new.contains(textBlockRange.location) && new.contains(textBlockRange.endLocation - 1)
-            || (textBlockRange.union(new) == textBlockRange && new.length > 0 && isLocationChanged == false)
-            || isLocationChanged == false) {
+                || (textBlockRange.union(new) == textBlockRange && new.length > 0 && isLocationChanged == false)
+                || isLocationChanged == false) {
             range = new.union(textBlockRange)
         } else {
             range = NSRange(location: textBlockRange.endLocation, length: new.endLocation - textBlockRange.endLocation)
@@ -131,13 +131,14 @@ class RichTextView: AutogrowingTextView {
 
     private func adjustRangeOnNonFocus(oldRange: UITextRange?) {
         guard let currentRange = selectedTextRange?.toNSRange(in: self),
-            let previousRange = oldRange?.toNSRange(in: self) else { return }
+              let previousRange = oldRange?.toNSRange(in: self)
+        else { return }
 
         var rangeToSet: NSRange?
         let isReverseTraversal = currentRange.location < previousRange.location
         var rangeToTraverse = NSRange(location: currentRange.location, length: attributedText.length - (currentRange.location + currentRange.length))
 
-        if isReverseTraversal == true {
+        if isReverseTraversal {
             rangeToTraverse = NSRange(location: 0, length: currentRange.location)
             attributedText.enumerateAttribute(.textBlock, in: rangeToTraverse, options: [.longestEffectiveRangeNotRequired, .reverse]) { val, range, stop in
                 if (val as? Bool != true), rangeToSet == nil {
@@ -223,9 +224,10 @@ class RichTextView: AutogrowingTextView {
 
     func rangeOfParagraph(at location: Int) -> NSRange {
         guard let position = self.position(from: beginningOfDocument, offset: location),
-            let paraRange = tokenizer.rangeEnclosingPosition(position, with: .paragraph, inDirection: UITextDirection(rawValue: UITextStorageDirection.backward.rawValue)),
-            let range = paraRange.toNSRange(in: self) else {
-                return NSRange(location: location, length: 0)
+              let paraRange = tokenizer.rangeEnclosingPosition(position, with: .paragraph, inDirection: UITextDirection(rawValue: UITextStorageDirection.backward.rawValue)),
+              let range = paraRange.toNSRange(in: self)
+        else {
+            return NSRange(location: location, length: 0)
         }
         return range
     }
@@ -233,20 +235,20 @@ class RichTextView: AutogrowingTextView {
     func previousContentLine(from location: Int) -> EditorLine? {
         let currentLineRange = rangeOfParagraph(at: location)
         guard let position = self.position(from: beginningOfDocument, offset: currentLineRange.location - 1),
-            let paraRange = tokenizer.rangeEnclosingPosition(position, with: .paragraph, inDirection: UITextDirection(rawValue: UITextStorageDirection.backward.rawValue)),
-            let range = paraRange.toNSRange(in: self) else {
-                return nil
-        }
+              let paraRange = tokenizer.rangeEnclosingPosition(position, with: .paragraph, inDirection: UITextDirection(rawValue: UITextStorageDirection.backward.rawValue)),
+              let range = paraRange.toNSRange(in: self)
+        else { return nil }
+        
         return EditorLine(text: attributedText.attributedSubstring(from: range), range: range)
     }
 
     func nextContentLine(from location: Int) -> EditorLine? {
         let currentLineRange = rangeOfParagraph(at: location)
         guard let position = self.position(from: beginningOfDocument, offset: currentLineRange.endLocation + 1),
-            let paraRange = tokenizer.rangeEnclosingPosition(position, with: .paragraph, inDirection: UITextDirection(rawValue: UITextStorageDirection.forward.rawValue)),
-            let range = paraRange.toNSRange(in: self) else {
-                return nil
-        }
+              let paraRange = tokenizer.rangeEnclosingPosition(position, with: .paragraph, inDirection: UITextDirection(rawValue: UITextStorageDirection.forward.rawValue)),
+              let range = paraRange.toNSRange(in: self)
+        else { return nil }
+        
         return EditorLine(text: attributedText.attributedSubstring(from: range), range: range)
     }
 
@@ -278,7 +280,8 @@ class RichTextView: AutogrowingTextView {
     @objc
     func handleKeyCommand(command: UIKeyCommand) {
         guard let input = command.input,
-            let key = EditorKey(input) else { return }
+              let key = EditorKey(input)
+        else { return }
         
         let modifierFlags = command.modifierFlags
 
@@ -303,10 +306,10 @@ class RichTextView: AutogrowingTextView {
 
     func wordAt(_ location: Int) -> NSAttributedString? {
         guard let position = self.position(from: beginningOfDocument, offset: location),
-            let wordRange = tokenizer.rangeEnclosingPosition(position, with: .word, inDirection: UITextDirection(rawValue: UITextStorageDirection.backward.rawValue)),
-            let range = wordRange.toNSRange(in: self) else {
-                return nil
-        }
+              let wordRange = tokenizer.rangeEnclosingPosition(position, with: .word, inDirection: UITextDirection(rawValue: UITextStorageDirection.backward.rawValue)),
+              let range = wordRange.toNSRange(in: self)
+        else { return nil }
+        
         return attributedText.attributedSubstring(from: range)
     }
 
