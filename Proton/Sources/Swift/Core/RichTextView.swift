@@ -343,7 +343,7 @@ class RichTextView: AutogrowingTextView {
     }
 
     func resetTypingAttributes() {
-        self.typingAttributes = defaultTypingAttributes
+        //self.typingAttributes = defaultTypingAttributes
     }
 
     override func deleteBackward() {
